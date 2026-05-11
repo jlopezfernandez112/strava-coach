@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:developers.strava.com)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:www.coros.com)",
+      "WebFetch(domain:www.anthropic.com)",
+      "WebFetch(domain:support.coros.com)",
+      "WebFetch(domain:anthropic.com)",
+      "Bash(uv init --no-readme --no-workspace)",
+      "Bash(\"/c/Users/I757883/AppData/Local/Programs/Python/Python313/python.exe\" --version)",
+      "Bash(\"/c/Users/I757883/AppData/Local/Programs/Python/Python313/Scripts/pip3\" --version)",
+      "Bash(\"/c/Users/I757883/AppData/Local/Programs/Python/Python313/Scripts/pip3\" install uv)",
+      "Bash(python \"/c/Users/I757883/AppData/Local/Programs/Python/Python313/Scripts/uv\" --version)",
+      "Bash(\"/c/Users/I757883/AppData/Local/Programs/Python/Python313/python.exe\" -m uv --version)",
+      "Bash(PYTHON=\"/c/Users/I757883/AppData/Local/Programs/Python/Python313/python.exe\")",
+      "Bash(\"$PYTHON\" -m venv --help)",
+      "Bash(PYEXE=\"C:/Users/I757883/AppData/Local/Programs/Python/Python313/python.exe\")",
+      "Bash(powershell -Command \"& ''$PYEXE'' -m venv --help\")",
+      "Bash(.venv/Scripts/python.exe --version)"
+    ]
+  }
+}
