@@ -68,7 +68,9 @@ STRAVA_CLIENT_ID=       # from https://www.strava.com/settings/api
 STRAVA_CLIENT_SECRET=   # same page — set callback domain to "localhost"
 ANTHROPIC_API_KEY=      # from https://console.anthropic.com
 ```
-User does NOT have Strava API credentials yet — needs to create the app at strava.com/settings/api.
+All credentials are configured in `.env`. The `.env` file is gitignored and must never be committed.
+- Strava app: created at strava.com/settings/api with Website=`http://localhost`, Callback Domain=`localhost`
+- Anthropic API key: personal account at console.anthropic.com, pay-per-use (no subscription needed)
 
 ## Key design decisions
 - **SQLite cache**: avoids hitting Strava rate limits (200 req/15min) during Claude conversations
@@ -92,8 +94,18 @@ User does NOT have Strava API credentials yet — needs to create the app at str
 | `get_activities_in_range` | Activities in a date range |
 
 ## Implementation status
-All files written. Virtual environment setup in progress via VSCode UI.
-Next step: verify `coach setup` works end-to-end (requires .env credentials).
+- All code files written and complete
+- `.venv` created and all dependencies installed via VSCode UI
+- `.env` configured with all credentials (Strava + Anthropic)
+- `coach setup` completed successfully: Strava OAuth done, full activity history synced into `data/coach.db`
+- Git repo initialized locally, remote linked to https://github.com/jlopezfernandez112/strava-coach.git
+- **First commit + push to GitHub is still pending** — next session should start here
+- `coach chat` is ready to use
+
+## Sync workflow (important)
+- `setup` = one-time full sync, do NOT run again
+- `sync` = incremental, only fetches activities newer than last sync timestamp — run after each new run
+- `/sync` command works inside the chat session too (no need to exit)
 
 ## Future roadmap (not yet built)
 - Web UI: FastAPI + minimal HTML (swap cli.py, CoachSession unchanged)
