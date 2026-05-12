@@ -172,6 +172,7 @@ def chat():
     if athlete.get("firstname"):
         console.print(f"[dim]Coaching: {athlete.get('firstname', '')} {athlete.get('lastname', '')}[/dim]\n")
 
+    create_tables(engine)  # idempotent — creates memories table on existing DBs
     with engine.connect() as conn:
         session = CoachSession(config, conn)
         memories = get_all_memories(conn)
