@@ -13,10 +13,23 @@ MODEL = "claude-sonnet-4-6"
 MAX_HISTORY_TURNS = 20  # keep last N user+assistant pairs to manage context
 
 
-def build_system_prompt(athlete: dict) -> str:
+def build_system_prompt(athlete: dict, memories: list[dict] | None = None) -> str:
     name = athlete.get("firstname", "the athlete")
     city = athlete.get("city", "")
     location = f" based in {city}" if city else ""
+
+    # Build coaching notes block from persisted memories
+    if memories:
+        lines = []
+        for cat in ["goal", "preference", "health", "training", "general"]:
+            entries = [m for m in memories if m["category"] == cat]
+            if entries:
+                lines.append(f"### {cat.capitalize()}")
+                for m in entries:
+                    lines.append(f"- [id:{m['id']}] {m['content']}")
+        memory_block = "\n".join(lines)
+    else:
+        memory_block = "(none yet)"
 
     return f"""You are a personal running coach for {name}{location}. You have access to their complete Strava training history via tools.
 
@@ -36,6 +49,15 @@ Never invent numbers. If a field is null, acknowledge it and work with what's av
 ## Tool usage
 ALWAYS call the relevant tool(s) before answering data-related questions. Do not guess or estimate from memory — use the tools. You may call multiple tools in one turn if needed.
 
+## Memory management
+You have a persistent memory of coaching notes for this athlete (see "Coaching notes" section below).
+- Save a note whenever the athlete mentions a goal, injury, preference, or training agreement worth remembering next session
+- Update notes when facts change (e.g. a target time is revised, an injury heals)
+- Delete notes that are no longer relevant (goal achieved, issue resolved)
+- Keep notes concise — one or two sentences each
+- Do this silently as tool calls — no need to announce it to the athlete
+- At the end of each session you will be asked to do a final housekeeping pass
+
 ## Response style
 - Be direct, warm, and specific
 - Lead with the most important insight
@@ -45,7 +67,10 @@ ALWAYS call the relevant tool(s) before answering data-related questions. Do not
 - Keep responses focused — this is a terminal chat, not an essay
 
 ## Today's date
-You should be aware that data cutoffs in the DB reflect what has been synced. Suggest `coach sync` if the athlete mentions a recent run that may not be in the data yet."""
+You should be aware that data cutoffs in the DB reflect what has been synced. Suggest `coach sync` if the athlete mentions a recent run that may not be in the data yet.
+
+## Coaching notes (your persistent memory about this athlete)
+{memory_block}"""
 
 
 class CoachSession:
@@ -55,8 +80,8 @@ class CoachSession:
         self.messages: list[dict] = []
         self._system_prompt: str | None = None
 
-    def set_athlete(self, athlete: dict) -> None:
-        self._system_prompt = build_system_prompt(athlete)
+    def set_athlete(self, athlete: dict, memories: list[dict] | None = None) -> None:
+        self._system_prompt = build_system_prompt(athlete, memories)
 
     def chat(self, user_message: str) -> str:
         """

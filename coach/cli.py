@@ -10,7 +10,7 @@ from rich.panel import Panel
 
 from .auth import get_valid_token, load_tokens, run_oauth_flow, save_tokens
 from .config import ConfigError, ensure_data_dir, load_config
-from .db import create_engine_for, create_tables, get_recent_activities, get_weekly_summary
+from .db import create_engine_for, create_tables, get_all_memories, get_recent_activities, get_weekly_summary
 from .formatters import format_activity_table, format_weekly_summary_table
 from .sync import StravaClient, sync_activities
 
@@ -174,7 +174,8 @@ def chat():
 
     with engine.connect() as conn:
         session = CoachSession(config, conn)
-        session.set_athlete(athlete)
+        memories = get_all_memories(conn)
+        session.set_athlete(athlete, memories)
 
         while True:
             try:
@@ -187,6 +188,16 @@ def chat():
                 continue
 
             if user_input.lower() in ("/quit", "/exit", "quit", "exit"):
+                with console.status("[dim]Saving session notes...[/dim]", spinner="dots"):
+                    try:
+                        session.chat(
+                            "This conversation is ending. Review your coaching notes in the system prompt. "
+                            "Save any new facts from this session worth remembering long-term. "
+                            "Update any notes that are now outdated. Delete any that are no longer relevant. "
+                            "Keep notes concise. Do not reply with text — only use memory tools silently."
+                        )
+                    except Exception:
+                        pass  # never block exit on memory failure
                 console.print("[dim]Goodbye![/dim]")
                 break
 

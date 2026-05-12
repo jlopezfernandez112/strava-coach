@@ -146,6 +146,60 @@ TOOL_DEFINITIONS = [
             "required": ["start_date", "end_date"],
         },
     },
+    {
+        "name": "save_memory",
+        "description": (
+            "Save a new coaching note about the athlete — a goal, preference, health note, "
+            "training agreement, or general context. Use this proactively when the athlete reveals "
+            "something worth remembering across sessions. Keep the content concise (1-2 sentences). "
+            "Categories: 'goal', 'preference', 'health', 'training', 'general'."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string",
+                    "enum": ["goal", "preference", "health", "training", "general"],
+                    "description": "Category of the memory",
+                },
+                "content": {
+                    "type": "string",
+                    "description": "The fact to remember, written concisely (1-2 sentences max)",
+                },
+            },
+            "required": ["category", "content"],
+        },
+    },
+    {
+        "name": "update_memory",
+        "description": (
+            "Update an existing coaching note by ID. Use this when a previously saved fact has changed "
+            "(e.g. a goal was revised, an injury resolved). The ID is shown as [id:N] in the "
+            "'Coaching notes' section of the system prompt."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "memory_id": {"type": "integer", "description": "The ID of the memory to update"},
+                "content": {"type": "string", "description": "The revised content (1-2 sentences max)"},
+            },
+            "required": ["memory_id", "content"],
+        },
+    },
+    {
+        "name": "delete_memory",
+        "description": (
+            "Delete a coaching note that is no longer relevant (goal achieved, injury resolved, "
+            "outdated context). Use this to keep the memory store clean and accurate."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "memory_id": {"type": "integer", "description": "The ID of the memory to delete"},
+            },
+            "required": ["memory_id"],
+        },
+    },
 ]
 
 
@@ -181,6 +235,15 @@ def execute_tool(tool_name: str, tool_input: dict, conn: Connection) -> str:
             result = db.search_activities(conn, query=tool_input["query"])
         elif tool_name == "get_activities_in_range":
             result = db.get_activities_in_range(conn, start_date=tool_input["start_date"], end_date=tool_input["end_date"])
+        elif tool_name == "save_memory":
+            new_id = db.save_memory(conn, category=tool_input["category"], content=tool_input["content"])
+            result = {"status": "saved", "id": new_id}
+        elif tool_name == "update_memory":
+            ok = db.update_memory(conn, memory_id=tool_input["memory_id"], content=tool_input["content"])
+            result = {"status": "updated" if ok else "not_found"}
+        elif tool_name == "delete_memory":
+            ok = db.delete_memory(conn, memory_id=tool_input["memory_id"])
+            result = {"status": "deleted" if ok else "not_found"}
         else:
             result = {"error": f"Unknown tool: {tool_name}"}
     except Exception as e:
