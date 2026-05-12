@@ -92,6 +92,9 @@ All credentials are configured in `.env`. The `.env` file is gitignored and must
 | `get_longest_runs` | Top N longest runs |
 | `search_activities` | Keyword search on name/description |
 | `get_activities_in_range` | Activities in a date range |
+| `save_memory` | Persist a coaching note (goal/preference/health/training/general) |
+| `update_memory` | Update an existing coaching note by ID |
+| `delete_memory` | Delete a stale or resolved coaching note |
 
 ## Implementation status
 - All code files written and complete
@@ -99,15 +102,22 @@ All credentials are configured in `.env`. The `.env` file is gitignored and must
 - `.env` configured with all credentials (Strava + Anthropic)
 - `coach setup` completed successfully: Strava OAuth done, full activity history synced into `data/coach.db`
 - Git repo initialized locally, remote linked to https://github.com/jlopezfernandez112/strava-coach.git
-- **First commit + push to GitHub is still pending** — next session should start here
+- **First commit + push to GitHub is still pending** — do this before starting new features
 - `coach chat` is ready to use
+- **Persistent memory implemented** (`feature/coaching-memory` branch): `memories` SQLite table + 3 Claude tools + system prompt injection + end-of-session housekeeping on `/quit`
 
 ## Sync workflow (important)
 - `setup` = one-time full sync, do NOT run again
 - `sync` = incremental, only fetches activities newer than last sync timestamp — run after each new run
 - `/sync` command works inside the chat session too (no need to exit)
 
+## Improvements to make (agreed, not yet built)
+- **Streaming responses**: Claude API supports streaming; would make terminal chat feel much more natural (words appear as generated instead of all at once). Change in `coach.py` `chat()` method.
+- **`/memories` REPL command**: Print the current coaching notes so the user can see what the coach remembers. One-liner in `cli.py` reading from `db.get_all_memories()`.
+
 ## Future roadmap (not yet built)
+- **Training plan generator**: Given a race date + goal, generate a week-by-week structured plan. New Claude tool or CLI command.
+- **Race predictor**: Estimate finish time for a target distance using Riegel/Vdot formulas applied to actual training data.
+- **Strava webhooks**: Auto-sync `coach.db` on every new Strava activity — no manual `coach sync` needed.
 - Web UI: FastAPI + minimal HTML (swap cli.py, CoachSession unchanged)
 - Telegram bot: python-telegram-bot, each chat = CoachSession
-- Strava webhooks: auto-sync on new activity
