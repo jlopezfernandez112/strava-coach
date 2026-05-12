@@ -66,6 +66,16 @@ sync_state_table = Table(
     Column("value", Text),
 )
 
+memories_table = Table(
+    "memories",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("category", String),   # goal | preference | health | training | general
+    Column("content", Text),
+    Column("created_at", String), # UTC ISO8601
+    Column("updated_at", String), # UTC ISO8601
+)
+
 
 def create_engine_for(db_path: Path) -> Engine:
     return create_engine(f"sqlite:///{db_path}", echo=False)
@@ -400,3 +410,40 @@ def set_sync_state(conn: Connection, key: str, value: str) -> None:
         text("INSERT OR REPLACE INTO sync_state (key, value) VALUES (:k, :v)"),
         {"k": key, "v": value},
     )
+
+
+# ---------------------------------------------------------------------------
+# Memory / coaching notes
+# ---------------------------------------------------------------------------
+
+def get_all_memories(conn: Connection) -> list[dict]:
+    rows = conn.execute(
+        text("SELECT id, category, content, created_at, updated_at FROM memories ORDER BY category, id")
+    ).fetchall()
+    return [_row_to_dict(r) for r in rows]
+
+
+def save_memory(conn: Connection, category: str, content: str) -> int:
+    now = datetime.now(timezone.utc).isoformat()
+    result = conn.execute(
+        text("INSERT INTO memories (category, content, created_at, updated_at) VALUES (:cat, :content, :now, :now)"),
+        {"cat": category, "content": content, "now": now},
+    )
+    conn.commit()
+    return result.lastrowid
+
+
+def update_memory(conn: Connection, memory_id: int, content: str) -> bool:
+    now = datetime.now(timezone.utc).isoformat()
+    result = conn.execute(
+        text("UPDATE memories SET content = :content, updated_at = :now WHERE id = :id"),
+        {"content": content, "now": now, "id": memory_id},
+    )
+    conn.commit()
+    return result.rowcount > 0
+
+
+def delete_memory(conn: Connection, memory_id: int) -> bool:
+    result = conn.execute(text("DELETE FROM memories WHERE id = :id"), {"id": memory_id})
+    conn.commit()
+    return result.rowcount > 0
