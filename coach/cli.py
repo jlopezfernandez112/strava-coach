@@ -142,6 +142,38 @@ def activity(activity_id: int):
 
 
 @main.command()
+def memories():
+    """Show all coaching notes saved by the AI coach."""
+    config = _get_config()
+
+    if not config.db_path.exists():
+        console.print("[yellow]No local database found. Run [cyan]coach setup[/cyan] first.[/yellow]")
+        sys.exit(1)
+
+    engine = create_engine_for(config.db_path)
+    create_tables(engine)  # ensure memories table exists on old DBs
+    with engine.connect() as conn:
+        rows = get_all_memories(conn)
+
+    if not rows:
+        console.print("[dim]No coaching notes saved yet. Start chatting to let the coach learn about you.[/dim]")
+        return
+
+    from rich.table import Table
+    table = Table(title="Coaching Notes", show_lines=True)
+    table.add_column("ID",       style="dim",   width=4,  no_wrap=True)
+    table.add_column("Category", style="cyan",  width=12, no_wrap=True)
+    table.add_column("Content",  style="white", ratio=1)
+    table.add_column("Updated",  style="dim",   width=12, no_wrap=True)
+
+    for r in rows:
+        updated = (r.get("updated_at") or "")[:10]
+        table.add_row(str(r["id"]), r.get("category", ""), r.get("content", ""), updated)
+
+    console.print(table)
+
+
+@main.command()
 def chat():
     """Chat with your AI running coach."""
     config = _get_config()

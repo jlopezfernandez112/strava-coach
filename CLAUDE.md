@@ -113,7 +113,9 @@ All credentials are configured in `.env`. The `.env` file is gitignored and must
 
 ## Improvements to make (agreed, not yet built)
 - **Streaming responses**: Claude API supports streaming; would make terminal chat feel much more natural (words appear as generated instead of all at once). Change in `coach.py` `chat()` method.
-- **`/memories` REPL command**: Print the current coaching notes so the user can see what the coach remembers. One-liner in `cli.py` reading from `db.get_all_memories()`.
+
+## Improvements done
+- **`coach memories` command**: `python -m coach.cli memories` prints all coaching notes as a Rich table (ID, category, content, updated date). Read-only — implemented on `feature/memories-command`.
 
 ## Future roadmap (not yet built)
 - **Training plan generator**: Given a race date + goal, generate a week-by-week structured plan. New Claude tool or CLI command.
