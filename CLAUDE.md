@@ -97,25 +97,20 @@ All credentials are configured in `.env`. The `.env` file is gitignored and must
 | `delete_memory` | Delete a stale or resolved coaching note |
 
 ## Implementation status
-- All code files written and complete
-- `.venv` created and all dependencies installed via VSCode UI
+- All code complete, `.venv` working, all dependencies installed
 - `.env` configured with all credentials (Strava + Anthropic)
-- `coach setup` completed successfully: Strava OAuth done, full activity history synced into `data/coach.db`
-- Git repo initialized locally, remote linked to https://github.com/jlopezfernandez112/strava-coach.git
-- **First commit + push to GitHub is still pending** — do this before starting new features
-- `coach chat` is ready to use
-- **Persistent memory implemented** (`feature/coaching-memory` branch): `memories` SQLite table + 3 Claude tools + system prompt injection + end-of-session housekeeping on `/quit`
+- `coach setup` completed: Strava OAuth done, full activity history synced into `data/coach.db`
+- All features merged to master and pushed to GitHub
+- Persistent memory implemented: `memories` SQLite table + 3 Claude tools (`save_memory`, `update_memory`, `delete_memory`) + system prompt injection + end-of-session housekeeping on `/quit`
+- `coach memories` command: prints all coaching notes as a Rich table
 
 ## Sync workflow (important)
 - `setup` = one-time full sync, do NOT run again
 - `sync` = incremental, only fetches activities newer than last sync timestamp — run after each new run
 - `/sync` command works inside the chat session too (no need to exit)
 
-## Improvements to make (agreed, not yet built)
-- **Streaming responses**: Claude API supports streaming; would make terminal chat feel much more natural (words appear as generated instead of all at once). Change in `coach.py` `chat()` method.
-
-## Improvements done
-- **`coach memories` command**: `python -m coach.cli memories` prints all coaching notes as a Rich table (ID, category, content, updated date). Read-only — implemented on `feature/memories-command`.
+## Tried and rejected
+- **Streaming responses**: Implemented and tested. The Anthropic API delivers tokens in network-batched bursts (whole sentences/paragraphs at once), not a smooth word-by-word trickle like Claude.ai. Felt worse than the current single-chunk display. Reverted. Do not retry unless API delivery behaviour changes.
 
 ## Future roadmap (not yet built)
 - **Training plan generator**: Given a race date + goal, generate a week-by-week structured plan. New Claude tool or CLI command.
