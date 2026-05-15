@@ -111,6 +111,7 @@ All credentials are configured in `.env`. The `.env` file is gitignored and must
 
 ## Tried and rejected
 - **Streaming responses**: Implemented and tested. The Anthropic API delivers tokens in network-batched bursts (whole sentences/paragraphs at once), not a smooth word-by-word trickle like Claude.ai. Felt worse than the current single-chunk display. Reverted. Do not retry unless API delivery behaviour changes.
+- **Per-second HR streams**: Considered pulling `/activities/{id}/streams` to get per-second HR data for accurate zone distribution. Rejected — practical coaching value doesn't justify ~100MB storage, extra API call per sync, and added query complexity. Most runs are steady-state so `average_heartrate` per activity is a sufficient proxy. Do not implement.
 
 ## Future roadmap (not yet built)
 - **Training plan generator**: Given a race date + goal, generate a week-by-week structured plan. New Claude tool or CLI command.
